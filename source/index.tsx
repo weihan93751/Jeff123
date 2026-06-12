@@ -89,26 +89,14 @@ const Icons = {
   ),
 };
 
-// 导航项（支持多级菜单）
+// 导航项
 const navItems = [
   { id: 'overview', labelKey: 'overview', icon: 'dashboard' },
   { id: 'transactions', labelKey: 'transactions', icon: 'transactions' },
   { id: 'payouts', labelKey: 'payouts', icon: 'payouts' },
   { id: 'disputes', labelKey: 'disputes', icon: 'disputes' },
   { id: 'reports', labelKey: 'reports', icon: 'reports' },
-  { 
-    id: 'shopManagement', 
-    labelKey: 'shopManagement', 
-    icon: 'settings', 
-    badge: 2, // 待处理审查项目数量
-    children: [
-      { id: 'paymentMethods', labelKey: 'paymentMethods' },
-      { id: 'accountReview', labelKey: 'accountReview', badge: 2 },
-      { id: 'bills', labelKey: 'bills' },
-      { id: 'invoices', labelKey: 'invoices' },
-      { id: 'accountSettings', labelKey: 'accountSettings' },
-    ]
-  },
+  { id: 'settings', labelKey: 'settings', icon: 'settings' },
 ];
 
 // 模拟数据
@@ -225,12 +213,6 @@ const translations = {
     'hide': 'Hide',
     'add': 'Add',
     'view payment analysis': 'View Payment Method Analysis',
-    shopManagement: 'Shop Management',
-    paymentMethods: 'Payment Methods',
-    accountReview: 'Account Review',
-    bills: 'Bills',
-    invoices: 'Invoices',
-    accountSettings: 'Account Settings',
   },
   'zh-CN': {
     overview: '总览',
@@ -322,12 +304,6 @@ const translations = {
     'hide': '隐藏',
     'add': '增加',
     'view payment analysis': '查看付款方式分析',
-    shopManagement: '商户管理',
-    paymentMethods: '付款方式管理',
-    accountReview: '账户审查',
-    bills: '账单',
-    invoices: '发票',
-    accountSettings: '账户设定',
   },
   'zh-TW': {
     overview: '總覽',
@@ -419,12 +395,6 @@ const translations = {
     'hide': '隱藏',
     'add': '增加',
     'view payment analysis': '查看付款方式分析',
-    shopManagement: '商店管理',
-    paymentMethods: '付款方式管理',
-    accountReview: '帳戶審查',
-    bills: '帳單',
-    invoices: '發票',
-    accountSettings: '帳戶設定',
   },
 };
 
@@ -444,11 +414,6 @@ export default function ShoplinePayments() {
   const [auditStatus, setAuditStatus] = useState<'pending' | 'returned' | 'rejected' | 'approved'>('pending');
   const [language, setLanguage] = useState<'en' | 'zh-CN' | 'zh-TW'>('zh-CN');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [showReviewAlert, setShowReviewAlert] = useState(true);
-  const [expandedMenu, setExpandedMenu] = useState<string | null>('shopManagement');
-  const [showSupplementModal, setShowSupplementModal] = useState(false);
-  const [showDetailPage, setShowDetailPage] = useState(false);
-  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
 
   const t = translations[language];
 
@@ -459,16 +424,6 @@ export default function ShoplinePayments() {
 
   const handleBackToShop = () => {
     window.location.href = '/prototypes/untitled-2';
-  };
-
-  const handleViewDetail = (reviewId: string) => {
-    setSelectedReviewId(reviewId);
-    setShowDetailPage(true);
-  };
-
-  const handleBackToList = () => {
-    setShowDetailPage(false);
-    setSelectedReviewId(null);
   };
 
   // 审核状态配置（使用翻译）
@@ -1147,58 +1102,6 @@ export default function ShoplinePayments() {
         <nav className="sidebar-nav">
           {navItems.map((item) => {
             const IconComponent = Icons[item.icon as keyof typeof Icons];
-            
-            // 如果有子菜单，渲染多级菜单
-            if (item.children && item.children.length > 0) {
-              const isExpanded = expandedMenu === item.id;
-              const showBadgeOnParent = !isExpanded && item.badge;
-              
-              return (
-                <div key={item.id} className="nav-group">
-                  <button
-                    className={`nav-item nav-group-header ${activeNav === item.id ? 'active' : ''} ${isExpanded ? 'expanded' : ''}`}
-                    onClick={() => {
-                      setExpandedMenu(isExpanded ? null : item.id);
-                      handleNavClick(item.id);
-                    }}
-                  >
-                    <IconComponent />
-                    <span>{t[item.labelKey]}</span>
-                    {showBadgeOnParent && (
-                      <span className="nav-badge">{item.badge}</span>
-                    )}
-                    <svg 
-                      className={`nav-arrow ${isExpanded ? 'rotated' : ''}`} 
-                      width="14" height="14" viewBox="0 0 24 24" 
-                      fill="none" stroke="currentColor" strokeWidth="2" 
-                      strokeLinecap="round" strokeLinejoin="round"
-                    >
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                  </button>
-                  
-                  {/* 子菜单 */}
-                  {isExpanded && (
-                    <div className="nav-submenu">
-                      {item.children.map((child) => (
-                        <button
-                          key={child.id}
-                          className={`nav-subitem ${activeNav === child.id ? 'active' : ''}`}
-                          onClick={() => handleNavClick(child.id)}
-                        >
-                          <span>{t[child.labelKey]}</span>
-                          {child.badge && (
-                            <span className="nav-badge">{child.badge}</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-            
-            // 普通菜单项
             return (
               <button
                 key={item.id}
@@ -1217,15 +1120,7 @@ export default function ShoplinePayments() {
       <main className="main-content">
         {/* 顶部栏 */}
         <header className="top-bar">
-          <h1 className="page-title">
-            {activeNav === 'accountReview' ? (language === 'zh-CN' ? '账户审查' : language === 'zh-TW' ? '帳戶審查' : 'Account Review') : 
-             activeNav === 'transactions' ? t.transactions :
-             activeNav === 'payouts' ? t.payouts :
-             activeNav === 'disputes' ? t.disputes :
-             activeNav === 'reports' ? t.reports :
-             activeNav === 'shopManagement' ? (language === 'zh-CN' ? '商户管理' : language === 'zh-TW' ? '商店管理' : 'Shop Management') :
-             t.overview}
-          </h1>
+          <h1 className="page-title">{t.overview}</h1>
           <div className="top-bar-actions">
             <button className="icon-btn"><Icons.settings /></button>
             <button className="icon-btn"><Icons.help /></button>
@@ -1365,530 +1260,8 @@ export default function ShoplinePayments() {
 
         {/* 内容区 */}
         <div className="content-area">
-          {/* 审查提示条 */}
-          {showReviewAlert && activeNav !== 'accountReview' && !showDetailPage && (
-            <div className="review-alert">
-              <div className="review-alert-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-              </div>
-              <div className="review-alert-content">
-                <span className="review-alert-label">{language === 'zh-CN' ? '您有待处理的审查项目：' : language === 'zh-TW' ? '您有待處理的審查項目：' : 'You have pending review items: '}</span>
-                <span className="review-alert-count">2</span>
-                <span className="review-alert-desc">{language === 'zh-CN' ? '请尽快处理，以避免影响账户的正常使用' : language === 'zh-TW' ? '請盡快處理，以避免影響帳戶的正常使用' : 'Please handle as soon as possible to avoid affecting normal account usage'}</span>
-              </div>
-              <button className="review-alert-action" onClick={() => {
-                setShowKycModal(true);
-                setCurrentStep(1);
-              }}>
-                {language === 'zh-CN' ? '立即处理' : language === 'zh-TW' ? '立即處理' : 'Handle Now'}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
-              <button className="review-alert-close" onClick={() => setShowReviewAlert(false)}>
-                <Icons.close />
-              </button>
-            </div>
-          )}
-          {/* 详情页 */}
-          {showDetailPage ? (
-            <div className="detail-page-wrapper">
-              {/* 详情页头部 */}
-              <div className="detail-header">
-                <button className="detail-back-btn" onClick={handleBackToList}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"/>
-                  </svg>
-                  <span>{language === 'zh-CN' ? '返回' : language === 'zh-TW' ? '返回' : 'Back'}</span>
-                </button>
-                <h1 className="detail-title">{language === 'zh-CN' ? '审查项目' : language === 'zh-TW' ? '審查項目' : 'Review Project'}</h1>
-                <span className="detail-status-badge">{language === 'zh-CN' ? '待处理' : language === 'zh-TW' ? '待處理' : 'Pending'}</span>
-              </div>
-
-              {/* 顶部警告提示条 */}
-              <div className="detail-warning-bar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a72c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <span>{language === 'zh-CN' ? '为确保账户安全，请于' : language === 'zh-TW' ? '為確保帳戶安全，請於' : 'To ensure account security, please'} <strong>2026-06-30 23:59:59 (UTC+8)</strong> {language === 'zh-CN' ? '前回复并提交相关资料，以免影响账户的正常使用' : language === 'zh-TW' ? '前回覆並提交相關資料，以避免影響帳戶的正常使用' : 'to respond and submit relevant materials to avoid affecting normal account usage'}</span>
-              </div>
-
-              <div className="detail-main">
-                {/* 右侧锚点导航 */}
-                <div className="detail-sidebar">
-                  <nav className="sidebar-nav">
-                    <a href="#basic-info" className="sidebar-link active">{language === 'zh-CN' ? '基本资料' : language === 'zh-TW' ? '基本資料' : 'Basic Info'}</a>
-                    <a href="#shop-info" className="sidebar-link">{language === 'zh-CN' ? '店家资料' : language === 'zh-TW' ? '店家資料' : 'Shop Info'}</a>
-                    <a href="#other-issues" className="sidebar-link">{language === 'zh-CN' ? '其他问题' : language === 'zh-TW' ? '其他問題' : 'Other Issues'}</a>
-                    <a href="#additional-materials" className="sidebar-link">{language === 'zh-CN' ? '额外补充资料' : language === 'zh-TW' ? '額外補充資料' : 'Additional Materials'}</a>
-                  </nav>
-                </div>
-
-                {/* 详情内容 */}
-                <div className="detail-content">
-                  {/* 基本资料 */}
-                  <div id="basic-info" className="detail-section">
-                    <div className="detail-section-header">
-                      <h2 className="detail-section-title">{language === 'zh-CN' ? '基本资料' : language === 'zh-TW' ? '基本資料' : 'Basic Information'}</h2>
-                    </div>
-                    <div className="detail-section-body basic-info-grid">
-                      <div className="basic-info-item">
-                        <label>{language === 'zh-CN' ? '审查编号' : language === 'zh-TW' ? '審查編號' : 'Review ID'}</label>
-                        <span className="basic-info-value">{selectedReviewId || '7551892472746978653'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h5v5"/><path d="M21 15v5h-5"/><path d="M12 12H9"/><path d="M12 12V9"/><path d="M12 12H6"/><path d="M12 12V6"/><path d="M4 16h5v5"/></svg></span>
-                      </div>
-                      <div className="basic-info-item">
-                        <label>{language === 'zh-CN' ? '状态' : language === 'zh-TW' ? '狀態' : 'Status'}</label>
-                        <span className="basic-info-value status-pending">{language === 'zh-CN' ? '待处理' : language === 'zh-TW' ? '待處理' : 'Pending'}</span>
-                      </div>
-                      <div className="basic-info-item">
-                        <label>{language === 'zh-CN' ? '类型' : language === 'zh-TW' ? '類型' : 'Type'}</label>
-                        <span className="basic-info-value">{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</span>
-                      </div>
-                      <div className="basic-info-item">
-                        <label>{language === 'zh-CN' ? '创建时间' : language === 'zh-TW' ? '創建時間' : 'Created At'}</label>
-                        <span className="basic-info-value">2026-06-03 11:06:17</span>
-                      </div>
-                      <div className="basic-info-item">
-                        <label>{language === 'zh-CN' ? '最近更新时间' : language === 'zh-TW' ? '最近更新時間' : 'Last Updated'}</label>
-                        <span className="basic-info-value">2026-06-03 11:06:17</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 店家资料 */}
-                  <div id="shop-info" className="detail-section">
-                    <div className="detail-section-header">
-                      <h2 className="detail-section-title">{language === 'zh-CN' ? '店家资料' : language === 'zh-TW' ? '店家資料' : 'Shop Information'}</h2>
-                      <p className="detail-section-desc">{language === 'zh-CN' ? '请提供以下店家资料' : language === 'zh-TW' ? '請提供以下店家資料' : 'Please provide the following shop information'}</p>
-                    </div>
-                    <div className="detail-section-body">
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '店铺名称' : language === 'zh-TW' ? '店鋪名稱' : 'Shop Name'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="Test Shop" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '店铺域名' : language === 'zh-TW' ? '店鋪域名' : 'Shop Domain'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="test-shop.myshopline.com" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '店铺类型' : language === 'zh-TW' ? '店鋪類型' : 'Shop Type'}</label>
-                        <select className="form-select" disabled>
-                          <option value="brand" selected>{language === 'zh-CN' ? '品牌店' : language === 'zh-TW' ? '品牌店' : 'Brand Store'}</option>
-                          <option value="marketplace">{language === 'zh-CN' ? '集市店' : language === 'zh-TW' ? '集市店' : 'Marketplace'}</option>
-                          <option value="dropshipping">{language === 'zh-CN' ? '代发货店' : language === 'zh-TW' ? '代發貨店' : 'Dropshipping'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '业务类型' : language === 'zh-TW' ? '業務類型' : 'Business Type'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="retail" selected>{language === 'zh-CN' ? '零售' : language === 'zh-TW' ? '零售' : 'Retail'}</option>
-                          <option value="wholesale">{language === 'zh-CN' ? '批发' : language === 'zh-TW' ? '批發' : 'Wholesale'}</option>
-                          <option value="services">{language === 'zh-CN' ? '服务' : language === 'zh-TW' ? '服務' : 'Services'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '业务描述' : language === 'zh-TW' ? '業務描述' : 'Business Description'} <span className="required">*</span></label>
-                        <textarea className="form-textarea" rows={4} disabled>Online retail store selling electronics and accessories</textarea>
-                      </div>
-                      <div className="new-issue-notice">
-                        <span className="notice-icon">📌</span>
-                        <span className="notice-text">{language === 'zh-CN' ? '以下为本次新增内容，请按要求填写。' : language === 'zh-TW' ? '以下為本次新增內容，請按要求填寫。' : 'The following is new content for this submission, please fill in as required.'}</span>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '预计年营收' : language === 'zh-TW' ? '預計年營收' : 'Estimated Annual Revenue'} <span className="new-issue">新问题</span></label>
-                        <select className="form-select">
-                          <option value="0-50k">{language === 'zh-CN' ? '低于5万美元' : language === 'zh-TW' ? '低於5萬美元' : 'Below $50K'}</option>
-                          <option value="50k-100k">$50K - $100K</option>
-                          <option value="100k-500k">$100K - $500K</option>
-                          <option value="500k-1m" selected>USD 500,000 - 1,000,000</option>
-                          <option value="1m-5m">$1M - $5M</option>
-                          <option value="5m+">{language === 'zh-CN' ? '500万美元以上' : language === 'zh-TW' ? '500萬美元以上' : 'Above $5M'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '员工数量' : language === 'zh-TW' ? '員工數量' : 'Number of Employees'} <span className="new-issue">新问题</span></label>
-                        <select className="form-select">
-                          <option value="1-10" selected>1-10</option>
-                          <option value="11-50">11-50</option>
-                          <option value="51-200">51-200</option>
-                          <option value="201-500">201-500</option>
-                          <option value="500+">{language === 'zh-CN' ? '500人以上' : language === 'zh-TW' ? '500人以上' : '500+'}</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 其他问题 */}
-                  <div id="other-issues" className="detail-section">
-                    <div className="detail-section-header">
-                      <h2 className="detail-section-title">{language === 'zh-CN' ? '其他问题' : language === 'zh-TW' ? '其他問題' : 'Other Issues'}</h2>
-                    </div>
-                    <div className="detail-section-body">
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '公司类型' : language === 'zh-TW' ? '公司類型' : 'Company Type'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="llc" selected>{language === 'zh-CN' ? '有限责任公司' : language === 'zh-TW' ? '有限責任公司' : 'Limited Liability Company'}</option>
-                          <option value="corporation">{language === 'zh-CN' ? '股份有限公司' : language === 'zh-TW' ? '股份有限公司' : 'Corporation'}</option>
-                          <option value="partnership">{language === 'zh-CN' ? '合伙企业' : language === 'zh-TW' ? '合夥企業' : 'Partnership'}</option>
-                          <option value="sole">{language === 'zh-CN' ? '独资企业' : language === 'zh-TW' ? '獨資企業' : 'Sole Proprietorship'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '公司注册名称' : language === 'zh-TW' ? '公司註冊名稱' : 'Company Registered Name'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="Test Company Limited" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '国家/地区' : language === 'zh-TW' ? '國家/地區' : 'Country/Region'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="hk" selected>{language === 'zh-CN' ? '中国香港' : language === 'zh-TW' ? '中國香港' : 'Hong Kong, China'}</option>
-                          <option value="cn">{language === 'zh-CN' ? '中国大陆' : language === 'zh-TW' ? '中國大陸' : 'Mainland China'}</option>
-                          <option value="us">United States</option>
-                          <option value="sg">Singapore</option>
-                          <option value="jp">Japan</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '雇主识别号' : language === 'zh-TW' ? '雇主識別號' : 'Employer Identification Number'}</label>
-                        <input type="text" className="form-input" defaultValue="12345678" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '公司地址' : language === 'zh-TW' ? '公司地址' : 'Company Address'} <span className="required">*</span></label>
-                        <textarea className="form-textarea" rows={3} disabled>123 Test Street, Hong Kong</textarea>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '联系人姓名' : language === 'zh-TW' ? '聯絡人姓名' : 'Contact Name'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="John Doe" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '联系电话' : language === 'zh-TW' ? '聯絡電話' : 'Contact Phone'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="+852 1234 5678" disabled />
-                      </div>
-                      <div className="new-issue-notice">
-                        <span className="notice-icon">📌</span>
-                        <span className="notice-text">{language === 'zh-CN' ? '以下为本次新增内容，请按要求填写。' : language === 'zh-TW' ? '以下為本次新增內容，請按要求填寫。' : 'The following is new content for this submission, please fill in as required.'}</span>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '联系邮箱' : language === 'zh-TW' ? '聯絡郵箱' : 'Contact Email'} <span className="required">*</span> <span className="new-issue">新问题</span></label>
-                        <input type="email" className="form-input" defaultValue="contact@test-shop.com" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 额外补充资料 */}
-                  <div id="additional-materials" className="detail-section">
-                    <div className="detail-section-header">
-                      <h2 className="detail-section-title">{language === 'zh-CN' ? '额外补充资料' : language === 'zh-TW' ? '額外補充資料' : 'Additional Materials'}</h2>
-                    </div>
-                    <div className="detail-section-body">
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '法定代表人姓名' : language === 'zh-TW' ? '法定代表人姓名' : 'Legal Representative Name'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="John Doe" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件类型' : language === 'zh-TW' ? '證件類型' : 'Document Type'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="passport" selected>{language === 'zh-CN' ? '护照' : language === 'zh-TW' ? '護照' : 'Passport'}</option>
-                          <option value="id-card">{language === 'zh-CN' ? '身份证' : language === 'zh-TW' ? '身份證' : 'ID Card'}</option>
-                          <option value="driving-license">{language === 'zh-CN' ? '驾驶证' : language === 'zh-TW' ? '駕駛證' : 'Driving License'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件号码' : language === 'zh-TW' ? '證件號碼' : 'Document Number'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="A12345678" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '签发日期' : language === 'zh-TW' ? '簽發日期' : 'Issue Date'} <span className="required">*</span></label>
-                        <input type="date" className="form-input" defaultValue="2020-01-01" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '有效期至' : language === 'zh-TW' ? '有效期至' : 'Expiration Date'} <span className="required">*</span></label>
-                        <input type="date" className="form-input" defaultValue="2030-01-01" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '国籍' : language === 'zh-TW' ? '國籍' : 'Nationality'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="hk" selected>{language === 'zh-CN' ? '中国香港' : language === 'zh-TW' ? '中國香港' : 'Hong Kong, China'}</option>
-                          <option value="cn">{language === 'zh-CN' ? '中国' : language === 'zh-TW' ? '中國' : 'China'}</option>
-                          <option value="us">United States</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '出生日期' : language === 'zh-TW' ? '出生日期' : 'Date of Birth'} <span className="required">*</span></label>
-                        <input type="date" className="form-input" defaultValue="1990-01-01" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件照片' : language === 'zh-TW' ? '證件照片' : 'Document Photo'} <span className="required">*</span></label>
-                        <div className="upload-area disabled">
-                          <div className="upload-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                              <polyline points="17 8 12 3 7 8"/>
-                              <line x1="12" y1="3" x2="12" y2="15"/>
-                            </svg>
-                          </div>
-                          <span className="upload-text">{language === 'zh-CN' ? '点击或拖拽上传' : language === 'zh-TW' ? '點擊或拖拽上傳' : 'Click or drag to upload'}</span>
-                          <span className="upload-hint">{language === 'zh-CN' ? '支持 JPG, PNG, PDF 格式，最大 10MB' : language === 'zh-TW' ? '支援 JPG, PNG, PDF 格式，最大 10MB' : 'Supports JPG, PNG, PDF, max 10MB'}</span>
-                        </div>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '实益拥有人姓名' : language === 'zh-TW' ? '實益擁有人姓名' : 'Beneficial Owner Name'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="John Doe" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '持股比例' : language === 'zh-TW' ? '持股比例' : 'Ownership Percentage'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="100%" disabled />
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件类型' : language === 'zh-TW' ? '證件類型' : 'Document Type'} <span className="required">*</span></label>
-                        <select className="form-select" disabled>
-                          <option value="passport" selected>{language === 'zh-CN' ? '护照' : language === 'zh-TW' ? '護照' : 'Passport'}</option>
-                          <option value="id-card">{language === 'zh-CN' ? '身份证' : language === 'zh-TW' ? '身份證' : 'ID Card'}</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件号码' : language === 'zh-TW' ? '證件號碼' : 'Document Number'} <span className="required">*</span></label>
-                        <input type="text" className="form-input" defaultValue="A12345678" disabled />
-                      </div>
-                      <div className="new-issue-notice">
-                        <span className="notice-icon">📌</span>
-                        <span className="notice-text">{language === 'zh-CN' ? '以下为本次新增内容，请按要求填写。' : language === 'zh-TW' ? '以下為本次新增內容，請按要求填寫。' : 'The following is new content for this submission, please fill in as required.'}</span>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '国籍' : language === 'zh-TW' ? '國籍' : 'Nationality'} <span className="required">*</span> <span className="new-issue">新问题</span></label>
-                        <select className="form-select">
-                          <option value="hk" selected>{language === 'zh-CN' ? '中国香港' : language === 'zh-TW' ? '中國香港' : 'Hong Kong, China'}</option>
-                          <option value="cn">{language === 'zh-CN' ? '中国' : language === 'zh-TW' ? '中國' : 'China'}</option>
-                          <option value="us">United States</option>
-                        </select>
-                      </div>
-                      <div className="form-row">
-                        <label className="form-label">{language === 'zh-CN' ? '证件照片' : language === 'zh-TW' ? '證件照片' : 'Document Photo'} <span className="required">*</span> <span className="new-issue">新问题</span></label>
-                        <div className="upload-area">
-                          <div className="upload-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                              <polyline points="17 8 12 3 7 8"/>
-                              <line x1="12" y1="3" x2="12" y2="15"/>
-                            </svg>
-                          </div>
-                          <span className="upload-text">{language === 'zh-CN' ? '点击或拖拽上传' : language === 'zh-TW' ? '點擊或拖拽上傳' : 'Click or drag to upload'}</span>
-                          <span className="upload-hint">{language === 'zh-CN' ? '支持 JPG, PNG, PDF 格式，最大 10MB' : language === 'zh-TW' ? '支援 JPG, PNG, PDF 格式，最大 10MB' : 'Supports JPG, PNG, PDF, max 10MB'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 底部按钮 */}
-                  <div className="detail-actions">
-                    <button className="btn btn-secondary">{language === 'zh-CN' ? '保存草稿' : language === 'zh-TW' ? '儲存草稿' : 'Save Draft'}</button>
-                    <button className="btn btn-primary">{language === 'zh-CN' ? '提交审查' : language === 'zh-TW' ? '提交審查' : 'Submit Review'}</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : activeNav === 'accountReview' ? (
-            <div className="review-page">
-              {/* 搜索栏 */}
-              <div className="review-search-bar">
-                <div className="search-input-wrapper">
-                  <input 
-                    type="text" 
-                    className="review-search-input" 
-                    placeholder={language === 'zh-CN' ? '搜索审查编号' : language === 'zh-TW' ? '搜尋審查編號' : 'Search review ID'}
-                  />
-                  <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                </div>
-                
-                <select className="review-select">
-                  <option value="">{language === 'zh-CN' ? '类型' : language === 'zh-TW' ? '類型' : 'Type'}</option>
-                  <option value="shop">{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</option>
-                  <option value="transaction">{language === 'zh-CN' ? '交易审查' : language === 'zh-TW' ? '交易審查' : 'Transaction Review'}</option>
-                </select>
-                
-                <select className="review-select">
-                  <option value="">{language === 'zh-CN' ? '状态' : language === 'zh-TW' ? '狀態' : 'Status'}</option>
-                  <option value="pending">{language === 'zh-CN' ? '待回应' : language === 'zh-TW' ? '待回應' : 'Pending'}</option>
-                  <option value="overdue">{language === 'zh-CN' ? '已逾期' : language === 'zh-TW' ? '已逾期' : 'Overdue'}</option>
-                  <option value="completed">{language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</option>
-                </select>
-                
-                <select className="review-select">
-                  <option value="">{language === 'zh-CN' ? '时区' : language === 'zh-TW' ? '時區' : 'Timezone'}</option>
-                  <option value="UTC+8">UTC+8</option>
-                </select>
-                
-                <select className="review-select">
-                  <option value="">{language === 'zh-CN' ? '创建时间' : language === 'zh-TW' ? '創建時間' : 'Created At'}</option>
-                  <option value="asc">{language === 'zh-CN' ? '最早' : language === 'zh-TW' ? '最早' : 'Earliest'}</option>
-                  <option value="desc">{language === 'zh-CN' ? '最晚' : language === 'zh-TW' ? '最晚' : 'Latest'}</option>
-                </select>
-                
-                <div className="date-range">
-                  <input type="text" className="review-date-input" placeholder={language === 'zh-CN' ? '开始日期' : language === 'zh-TW' ? '開始日期' : 'Start Date'} />
-                  <span className="date-separator">→</span>
-                  <input type="text" className="review-date-input" placeholder={language === 'zh-CN' ? '结束日期' : language === 'zh-TW' ? '結束日期' : 'End Date'} />
-                  <button className="date-picker-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/>
-                      <line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              {/* 时区提示 */}
-              <div className="timezone-hint">
-                <span className="timezone-label">{language === 'zh-CN' ? '时区:' : language === 'zh-TW' ? '時區:' : 'Timezone:'}</span>
-                <span className="timezone-value">UTC+8</span>
-              </div>
-              
-              {/* 审查列表表格 */}
-              <div className="review-table-wrapper">
-                <div className="review-table-container">
-                  <table className="review-table">
-                  <thead>
-                    <tr>
-                      <th>{language === 'zh-CN' ? '审查编号' : language === 'zh-TW' ? '審查編號' : 'Review ID'}</th>
-                      <th>{language === 'zh-CN' ? '回应期限' : language === 'zh-TW' ? '回應期限' : 'Response Deadline'}</th>
-                      <th>{language === 'zh-CN' ? '状态' : language === 'zh-TW' ? '狀態' : 'Status'}</th>
-                      <th>{language === 'zh-CN' ? '类型' : language === 'zh-TW' ? '類型' : 'Type'}</th>
-                      <th>{language === 'zh-CN' ? '创建时间' : language === 'zh-TW' ? '創建時間' : 'Created At'}</th>
-                      <th>{language === 'zh-CN' ? '最近更新' : language === 'zh-TW' ? '最近更新' : 'Last Updated'}</th>
-                      <th>{language === 'zh-CN' ? '操作' : language === 'zh-TW' ? '操作' : 'Action'}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* 待处理状态 */}
-                    <tr>
-                      <td>7551892472746978653</td>
-                      <td className="deadline-pending">2026-06-30 23:59:59 (UTC+8)</td>
-                      <td><span className="status-badge status-pending">{language === 'zh-CN' ? '待回应' : language === 'zh-TW' ? '待回應' : 'Pending'}</span></td>
-                      <td>{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</td>
-                      <td>2026-06-03 11:06:17</td>
-                      <td>2026-06-03 11:07:20</td>
-                      <td><button className="action-btn" onClick={() => handleViewDetail('7551892472746978653')}>{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>7521467379225250486</td>
-                      <td className="deadline-pending">2026-06-30 23:59:59 (UTC+8)</td>
-                      <td><span className="status-badge status-pending">{language === 'zh-CN' ? '待回应' : language === 'zh-TW' ? '待回應' : 'Pending'}</span></td>
-                      <td>{language === 'zh-CN' ? '交易审查' : language === 'zh-TW' ? '交易審查' : 'Transaction Review'}</td>
-                      <td>2026-06-13 11:21:40</td>
-                      <td>2026-06-13 11:22:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>7521467379225250486</td>
-                      <td className="deadline-pending">2026-06-12 23:59:59 (UTC+8)</td>
-                      <td><span className="status-badge status-pending">{language === 'zh-CN' ? '待回应' : language === 'zh-TW' ? '待回應' : 'Pending'}</span></td>
-                      <td>{language === 'zh-CN' ? '交易审查' : language === 'zh-TW' ? '交易審查' : 'Transaction Review'}</td>
-                      <td>2026-06-13 11:21:40</td>
-                      <td>2026-06-13 11:23:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    {/* 已逾期状态 */}
-                    <tr>
-                      <td>
-                        75191518836616842<br/>
-                        <span className="related-id"><a href="#" className="related-link">{language === 'zh-CN' ? '相关编号' : language === 'zh-TW' ? '相關編號' : 'Related ID'}: 7518686840820270808</a></span>
-                      </td>
-                      <td className="deadline-overdue">-</td>
-                      <td><span className="status-badge status-overdue">{language === 'zh-CN' ? '已逾期' : language === 'zh-TW' ? '已逾期' : 'Overdue'}</span></td>
-                      <td>{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</td>
-                      <td>2026-05-11 21:00:44</td>
-                      <td>2026-05-11 21:01:30</td>
-                      <td><button className="action-btn action-primary" onClick={() => setShowSupplementModal(true)}>{language === 'zh-CN' ? '申请补充资料' : language === 'zh-TW' ? '申請補充資料' : 'Apply for Supplement'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>75191518836616842</td>
-                      <td className="deadline-overdue">-</td>
-                      <td><span className="status-badge status-overdue">{language === 'zh-CN' ? '已逾期' : language === 'zh-TW' ? '已逾期' : 'Overdue'}</span></td>
-                      <td>{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</td>
-                      <td>2026-05-11 21:00:44</td>
-                      <td>2026-05-11 21:02:00</td>
-                      <td><button className="action-btn action-primary" onClick={() => setShowSupplementModal(true)}>{language === 'zh-CN' ? '申请补充资料' : language === 'zh-TW' ? '申請補充資料' : 'Apply for Supplement'}</button></td>
-                    </tr>
-                    {/* 已完成状态 */}
-                    <tr>
-                      <td>7518590480419178237</td>
-                      <td className="deadline-completed">-</td>
-                      <td><span className="status-badge status-completed">{language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span></td>
-                      <td>{language === 'zh-CN' ? '交易审查' : language === 'zh-TW' ? '交易審查' : 'Transaction Review'}</td>
-                      <td>2026-05-11 11:43:43</td>
-                      <td>2026-05-11 11:45:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>7518587441478158042</td>
-                      <td className="deadline-completed">-</td>
-                      <td><span className="status-badge status-completed">{language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span></td>
-                      <td>{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</td>
-                      <td>2026-05-11 11:40:42</td>
-                      <td>2026-05-11 11:42:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>7518587441478158042</td>
-                      <td className="deadline-completed">-</td>
-                      <td><span className="status-badge status-completed">{language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span></td>
-                      <td>{language === 'zh-CN' ? '店家资料审查' : language === 'zh-TW' ? '店家資料審查' : 'Shop Info Review'}</td>
-                      <td>2026-05-11 11:40:42</td>
-                      <td>2026-05-11 11:43:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                    <tr>
-                      <td>7518586840820270808</td>
-                      <td className="deadline-completed">-</td>
-                      <td><span className="status-badge status-completed">{language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span></td>
-                      <td>{language === 'zh-CN' ? '交易审查' : language === 'zh-TW' ? '交易審查' : 'Transaction Review'}</td>
-                      <td>2026-05-11 11:40:06</td>
-                      <td>2026-05-11 11:41:00</td>
-                      <td><button className="action-btn">{language === 'zh-CN' ? '查看' : language === 'zh-TW' ? '查看' : 'View'}</button></td>
-                    </tr>
-                  </tbody>
-                </table>
-                </div>
-              </div>
-              
-              {/* 分页器 */}
-              <div className="review-pagination">
-                <span className="pagination-info">{language === 'zh-CN' ? '共' : language === 'zh-TW' ? '共' : 'Total'} 6 {language === 'zh-CN' ? '项数据' : language === 'zh-TW' ? '項數據' : 'items'}</span>
-                <div className="pagination-controls">
-                  <button className="pagination-btn pagination-prev" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                  </button>
-                  <button className="pagination-btn pagination-page active">1</button>
-                  <button className="pagination-btn pagination-next">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </button>
-                </div>
-                <div className="pagination-size">
-                  <select className="pagination-select">
-                    <option value="10">10 {language === 'zh-CN' ? '条/页' : language === 'zh-TW' ? '條/頁' : 'per page'}</option>
-                    <option value="20">20 {language === 'zh-CN' ? '条/页' : language === 'zh-TW' ? '條/頁' : 'per page'}</option>
-                    <option value="50">50 {language === 'zh-CN' ? '条/页' : language === 'zh-TW' ? '條/頁' : 'per page'}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="content-layout">
-              {/* 左侧列：账户余额 + 交易概览 */}
+          <div className="content-layout">
+            {/* 左侧列：账户余额 + 交易概览 */}
             <div className="content-left">
               {/* 账户余额卡片 */}
               <div className="card balance-card">
@@ -1989,11 +1362,11 @@ export default function ShoplinePayments() {
                     <div className="verification-list">
                       <div className="verification-item">
                         <span className="check-icon">✓</span>
-                        <span>{language === 'zh-CN' ? '基本资料设置' : language === 'zh-TW' ? '基本資料設置' : 'Basic Information'} {language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span>
+                        <span>{language === 'zh-CN' ? '基本资料设置' : language === 'zh-TW' ? '基本資料設置' : 'Basic Information'} {language === 'zh-CN' ? '已完成' : language === 'zh-TW' ? '已完成' : 'Completed'}</span>
                       </div>
                       <div className="verification-item">
                         <span className="check-icon">✓</span>
-                        <span>{language === 'zh-CN' ? '审核验证' : language === 'zh-TW' ? '審核驗證' : 'Review Verification'} {language === 'zh-CN' ? '已回应' : language === 'zh-TW' ? '已回應' : 'Completed'}</span>
+                        <span>{language === 'zh-CN' ? '审核验证' : language === 'zh-TW' ? '審核驗證' : 'Review Verification'} {language === 'zh-CN' ? '已完成' : language === 'zh-TW' ? '已完成' : 'Completed'}</span>
                       </div>
                     </div>
                   </div>
@@ -2001,7 +1374,6 @@ export default function ShoplinePayments() {
               </div>
             </div>
           </div>
-          )}
         </div>
       </main>
 
@@ -2136,27 +1508,6 @@ export default function ShoplinePayments() {
             <div className="exit-confirm-footer">
               <button className="exit-confirm-cancel" onClick={handleExitCancel}>{t.cancel}</button>
               <button className="exit-confirm-ok" onClick={handleExitConfirm}>{language === 'zh-CN' ? '确认退出' : language === 'zh-TW' ? '確認退出' : 'Confirm Exit'}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 申请补充资料确认弹窗 */}
-      {showSupplementModal && (
-        <div className="supplement-overlay">
-          <div className="supplement-modal">
-            <div className="supplement-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1890ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
-            </div>
-            <h3 className="supplement-title">{language === 'zh-CN' ? '确认要申请补充资料吗？' : language === 'zh-TW' ? '確認要申請補充資料嗎？' : 'Confirm to apply for supplementary materials?'}</h3>
-            <p className="supplement-desc">{language === 'zh-CN' ? '将评估是否重新开放审查；若未收到通知，则无需处理。' : language === 'zh-TW' ? '將評估是否重新開放審查；若未收到通知，則無需處理。' : 'Will evaluate whether to reopen the review; if no notification is received, no action is required.'}</p>
-            <div className="supplement-footer">
-              <button className="supplement-cancel" onClick={() => setShowSupplementModal(false)}>{language === 'zh-CN' ? '取消' : language === 'zh-TW' ? '取消' : 'Cancel'}</button>
-              <button className="supplement-confirm" onClick={() => setShowSupplementModal(false)}>{language === 'zh-CN' ? '确认' : language === 'zh-TW' ? '確認' : 'Confirm'}</button>
             </div>
           </div>
         </div>
